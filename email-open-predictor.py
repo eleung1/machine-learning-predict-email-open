@@ -78,23 +78,23 @@ print('Tweaked negative sample size=' + str(len(df.loc[df['opened'] != 1]))) #32
 # ignorin mail_cateory and mail_type improved accuracy
 X = df.drop([
                     'user_id',
-                    #'mail_id',
+                    'mail_id',
                     'click_time', 
                     'clicked', 
                     'open_time', 
                     'opened', 
                     'unsubscribe_time', 
                     'unsubscribed',
-                    #'mail_category', 'mail_type',
+                    'mail_category', 'mail_type',
                     'sent_time'], axis=1)
 y = df['opened']
 
 # normalize data
-from sklearn import preprocessing
-X = preprocessing.scale(X)
+#from sklearn import preprocessing
+#X = preprocessing.scale(X)
 
 from sklearn.cross_validation import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .10)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .05)
 
 # create classifier, at this point it is just an empty box of rules
 from sklearn import tree
@@ -130,10 +130,13 @@ testDf = pd.read_csv(f,
 f.close
 testDf = testDf.fillna(value=-9999)
 
-X2 = testDf.drop(['user_id',
-                  #'mail_id',
-                    #'mail_category', 'mail_type',
+X2 = testDf.drop([
+                  'user_id',
+                  'mail_id',
+                  'mail_category', 'mail_type',
                     'sent_time'], axis=1)
 
 final_pred = clf.predict(X2)
+print('final predictions')
+print(final_pred)
 np.savetxt('prediction.csv',final_pred, fmt='%i')
