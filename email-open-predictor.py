@@ -49,6 +49,25 @@ df = pd.read_csv(f,
 f.close
 df = df.fillna(value=-9999)
 
+df = df.drop(df[np.logical_and(df['opened'] != 0, df['clicked'] == 1)].index)
+#df = df[np.logical_and(df['opened'] != 0, df['clicked'] != 1)]
+
+# Examine positive and negative samples to see if there is class imbalance
+X_positive = df.loc[df['opened'] == 1]
+X_negative = df.loc[df['opened'] != 1]
+print('Original positive sample size=' + str(len(X_positive))) #161347
+print('Original negative sample size=' + str(len(X_negative))) #324701
+
+# There are twice as many negatives samples as positive ones, cut half of the negatives
+X_negative_half = X_negative[:161347]
+
+df = pd.concat([X_positive, X_negative_half])
+print('Tweaked positive sample size=' + str(len(df.loc[df['opened'] == 1]))) #161347
+print('Tweaed negative sample size=' + str(len(df.loc[df['opened'] != 1]))) #324701
+
+#Shuffle
+df.reindex(np.random.permutation(df.index))
+
 # ignorin mail_cateory and mail_type improved accuracy
 X = df.drop(['user_id',
                     'mail_id',
@@ -57,7 +76,7 @@ X = df.drop(['user_id',
                     'open_time', 
                     'opened', 
                     'unsubscribe_time', 
-                    'unsubscribed','mail_category', 'mail_type',
+                    'unsubscribed',
                     'sent_time'], axis=1)
 y = df['opened']
 
@@ -98,7 +117,7 @@ testDf = testDf.fillna(value=-9999)
 
 X2 = testDf.drop(['user_id',
                     'mail_id',
-                    'mail_category', 'mail_type',
+                    #'mail_category', 'mail_type',
                     'sent_time'], axis=1)
 
 final_pred = clf.predict(X2)
