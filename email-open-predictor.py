@@ -20,6 +20,10 @@ def convertBool(x):
     else:
         return 0
 
+# convert user_id and mail_id to a hash value
+def convertId(x):
+    return hash(x)
+
 # extract the last digits in a string
 # used for columns mail_category and mail_type
 # e.g. mail_category_1 becomes 1, mail_type_5 becomes 5, etc
@@ -45,11 +49,14 @@ df = pd.read_csv(f,
                              "clicked": convertBool,
                              "hacker_confirmation": convertBool,
                              "mail_type": convertMailType,
-                             "mail_category": convertMailCategory})
+                             "mail_category": convertMailCategory,
+                             "user_id": convertId,
+                             "mail_id": convertId})
 f.close
 df = df.fillna(value=-9999)
-
-df = df.drop(df[np.logical_and(df['opened'] != 0, df['clicked'] == 1)].index)
+print('DF size before dropping invalid records='+str(len(df)))
+df = df.drop(df[np.logical_and(df['opened'] != 1, df['clicked'] == 1)].index)
+print('DF size after dropping invalid records='+str(len(df)))
 #df = df[np.logical_and(df['opened'] != 0, df['clicked'] != 1)]
 
 # Examine positive and negative samples to see if there is class imbalance
@@ -59,36 +66,42 @@ print('Original positive sample size=' + str(len(X_positive))) #161347
 print('Original negative sample size=' + str(len(X_negative))) #324701
 
 # There are twice as many negatives samples as positive ones, cut half of the negatives
-X_negative_half = X_negative[:161347]
+X_negative_half = X_negative[:161347] #136179
 
 df = pd.concat([X_positive, X_negative_half])
 print('Tweaked positive sample size=' + str(len(df.loc[df['opened'] == 1]))) #161347
-print('Tweaed negative sample size=' + str(len(df.loc[df['opened'] != 1]))) #324701
+print('Tweaked negative sample size=' + str(len(df.loc[df['opened'] != 1]))) #324701
 
 #Shuffle
-df.reindex(np.random.permutation(df.index))
+#df.reindex(np.random.permutation(df.index))
 
 # ignorin mail_cateory and mail_type improved accuracy
-X = df.drop(['user_id',
-                    'mail_id',
+X = df.drop([
+                    'user_id',
+                    #'mail_id',
                     'click_time', 
                     'clicked', 
                     'open_time', 
                     'opened', 
                     'unsubscribe_time', 
                     'unsubscribed',
+                    #'mail_category', 'mail_type',
                     'sent_time'], axis=1)
 y = df['opened']
 
+# normalize data
+from sklearn import preprocessing
+X = preprocessing.scale(X)
+
 from sklearn.cross_validation import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .25)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .10)
 
 # create classifier, at this point it is just an empty box of rules
 from sklearn import tree
 clf = tree.DecisionTreeClassifier()
 
 #from sklearn.neighbors import KNeighborsClassifier
-#clf = KNeighborsClassifier()
+#clf = KNeighborsClassifier(n_neighbors=5, weights='distance', algorithm="ball_tree")
 
 # train the classifier, fit() will find pattern in data
 clf = clf.fit(X_train, y_train) 
@@ -111,12 +124,14 @@ testDf = pd.read_csv(f,
                              "clicked": convertBool,
                              "hacker_confirmation": convertBool,
                              "mail_type": convertMailType,
-                             "mail_category": convertMailCategory},)
+                             "mail_category": convertMailCategory,
+                             "user_id": convertId,
+                             "mail_id": convertId},)
 f.close
 testDf = testDf.fillna(value=-9999)
 
 X2 = testDf.drop(['user_id',
-                    'mail_id',
+                  #'mail_id',
                     #'mail_category', 'mail_type',
                     'sent_time'], axis=1)
 
