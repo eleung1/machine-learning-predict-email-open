@@ -86,7 +86,8 @@ X = df.drop([
                     'unsubscribe_time', 
                     'unsubscribed',
                     'mail_category', 'mail_type',
-                    'sent_time'], axis=1)
+                    'sent_time'
+                    ], axis=1)
 y = df['opened']
 
 # normalize data
@@ -97,8 +98,11 @@ from sklearn.cross_validation import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .05)
 
 # create classifier, at this point it is just an empty box of rules
-from sklearn import tree
-clf = tree.DecisionTreeClassifier(class_weight="balanced")
+#from sklearn import tree
+#clf = tree.DecisionTreeClassifier(class_weight="balanced")
+
+from sklearn.ensemble import ExtraTreesClassifier
+clf = ExtraTreesClassifier()
 
 #from sklearn.neighbors import KNeighborsClassifier
 #clf = KNeighborsClassifier(n_neighbors=5, weights='distance', algorithm="ball_tree")
