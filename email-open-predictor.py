@@ -98,7 +98,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .10)
 
 # create classifier, at this point it is just an empty box of rules
 from sklearn import tree
-clf = tree.DecisionTreeClassifier()
+clf = tree.DecisionTreeClassifier(class_weight="balanced")
 
 #from sklearn.neighbors import KNeighborsClassifier
 #clf = KNeighborsClassifier(n_neighbors=5, weights='distance', algorithm="ball_tree")
